@@ -1,3 +1,8 @@
+"""
+Usar distribucion de python de anaconda, ademas, instalar pyserial a esta distribucion
+    - Para instalar Pyserial --> abrir powershell (Windows) y usar comando:  conda install -c main pyserial 
+"""
+
 import serial
 import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
@@ -6,18 +11,19 @@ import sys
 
 # crear objeto serial
 try:
-    serialPort = serial.Serial(port='COM7', baudrate=9600)
+    serialPort = serial.Serial(port = 'COM7', baudrate = 9600)
 except:
     print('No se puede abrir el puerto serie.')
     sys.exit()
 
+
 # crear ventana para mostrar la gráfica
 fig, ax = plt.subplots()
-line, = ax.plot([], [], 'ro', markersize=3)
+line, = ax.plot([], [], 'ro', markersize = 3)
 
 # datos de la gráfica
-x_data = deque(maxlen=200)
-y_data = deque(maxlen=200)
+x_data = deque(maxlen = 200)
+y_data = deque(maxlen = 200)
 
 # inicializar la gráfica
 def init():
@@ -42,6 +48,8 @@ def update(frame):
     line.set_data(x_data, y_data)
 
     return line,
+
+
 
 # animación de la gráfica
 ani = FuncAnimation(fig, update, frames=None, init_func=init, blit=True, interval=0.01)
