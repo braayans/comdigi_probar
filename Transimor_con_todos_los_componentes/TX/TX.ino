@@ -2,24 +2,27 @@
 //Escrito por: Brayan Romero
 
 
+
+
 #include <OneWire.h>
 #include <DallasTemperature.h>
 
 //libreria del MPU - 6050
 #include "Wire.h" 
+#include <Adafruit_MPU6050.h>
+#include <Adafruit_Sensor.h>
 
 //Librerias de transceptor
 #include <SPI.h>
 #include <RH_NRF24.h>
 
 //Librerios BMP280
-#include<Adafruit_Sensor.h>
 #include<Adafruit_BMP280.h>
 
 
 
 //Objeto DS18B20
-#define ONE_WIRE_BUS 2 //PIN S de DS18B20 conectado al pin digital 2 (cambiar numero si necesario
+#define ONE_WIRE_BUS 4 //PIN S de DS18B20 conectado al pin digital 2 (cambiar numero si necesario)
 
 //Bus de protocolo ONEWIRE
 OneWire oneWire(ONE_WIRE_BUS);
@@ -29,6 +32,9 @@ DallasTemperature sensors(&oneWire);
 
 //Objeto transceptor
 RH_NRF24 nrf24;
+
+//Objeto MPU6050
+Adafruit_MPU6050 mpu;
 
 //Objeot BMP280
 Adafruit_BMP280 bmp;
@@ -59,20 +65,27 @@ String str_altitud;
 bool bandera = false;
 
 void setup() {
-  Serial.begin(9600);
+  Serial.begin(115200);
 
   //Setup del transceptor
   if (!nrf24.init()){Serial.println("Fallo de inicializacion");}
   if (!nrf24.setChannel(2)){Serial.println("No se ha logrado establecer canal");} 
   if (!nrf24.setRF(RH_NRF24::DataRate250kbps, RH_NRF24::TransmitPower0dBm)){Serial.println("Fallo en opciones RF");}  
 
+  Serial.println("Todo funcionando ant");
 
   //Setup del MPU - 6050
-  Wire.begin();
-  Wire.beginTransmission(MPU_ADDR); 
-  Wire.write(0x6B); 
-  Wire.write(0); 
-  Wire.endTransmission(true);
+  if(mpu.begin()){
+    Serial.println("MPU OK");
+  }
+  else{
+    Serial.println("ERROR MPU");
+  }
+  
+  mpu.setAccelerometerRange(MPU6050_RANGE_8_G);  //Medicion hasta 8G
+  mpu.setGyroRange(MPU6050_RANGE_500_DEG);  //Mediciones de 500°/ seg
+  mpu.setFilterBandwidth(MPU6050_BAND_184_HZ); // 184 Hz ancho de banda
+
 
 
   //Setup del DS18b20
@@ -80,12 +93,21 @@ void setup() {
   sensors.begin();
 
   //Setup bmp280
+  if(bmp.begin()){
+    Serial.println("BMP OK");
+  }
+  else{
+    Serial.println("ERROR BMP");
+  }
   bmp.setSampling(Adafruit_BMP280::MODE_NORMAL,     /* Modo de operación */
   Adafruit_BMP280::SAMPLING_X2,     /* Temp. oversampling */
   Adafruit_BMP280::SAMPLING_X16,    /* Presion oversampling */
   Adafruit_BMP280::FILTER_X16,      /* Filtrado. */
   Adafruit_BMP280::STANDBY_MS_500); /* Tiempo Standby. */
 
+
+
+  Serial.println("Todo funcionando");
   delay(1000); 
 }
 
@@ -96,19 +118,17 @@ void dallas(){   //Funcion donde se hace la lectura de temperatura
 
 void mpu6050(){
 
-  Wire.beginTransmission(MPU_ADDR);
-  Wire.write(0x3B); 
-  Wire.endTransmission(false);
-  Wire.requestFrom(MPU_ADDR, 7*2, true); 
-  
-  
-  accelerometer_x = Wire.read()<<8 | Wire.read(); 
-  accelerometer_y = Wire.read()<<8 | Wire.read(); 
-  accelerometer_z = Wire.read()<<8 | Wire.read(); 
-  temperature = Wire.read()<<8 | Wire.read(); 
-  gyro_x = Wire.read()<<8 | Wire.read(); 
-  gyro_y = Wire.read()<<8 | Wire.read(); 
-  gyro_z = Wire.read()<<8 | Wire.read(); 
+  sensors_event_t a, g, temp;
+  mpu.getEvent(&a, &g, &temp);
+
+  accelerometer_x = a.acceleration.x;
+  accelerometer_y = a.acceleration.y;
+  accelerometer_z = a.acceleration.z;
+
+  gyro_x = g.gyro.x;
+  gyro_y = g.gyro.y;
+  gyro_z = g.gyro.z;
+
 }
 
 void bmp280(){
@@ -141,8 +161,8 @@ void loop() {
 
   //Uniendo los datos en una sola cadena
   str_datos = str_accelerometer_x + ',' + str_accelerometer_y + ',' + str_accelerometer_z + ',' + str_gyro_x + ',' + str_gyro_y + ',' + str_gyro_z + ',' + str_temperaturaD + ',' + str_presion + ',' + str_altitud;
-
-
+  delay(2000);
+  Serial.println(str_datos); //Borrar para cuando se implemente en el balon para no gastar espacio innecesareamente
   static const char *datos = str_datos.c_str();  
 
   //Envia los datos a la base

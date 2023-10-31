@@ -80,6 +80,8 @@ void loop() {
   //Uniendo los datos en una sola cadena
   str_datos = str_accelerometer_x + ',' + str_accelerometer_y + ',' + str_accelerometer_z + ',' + str_gyro_x + ',' + str_gyro_y + ',' + str_gyro_z;
   
+  Serial.println(str_datos);
+
   static const char *datos = str_datos.c_str();  
 
   //Enviando los datos

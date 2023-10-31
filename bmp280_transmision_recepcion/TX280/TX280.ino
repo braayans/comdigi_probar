@@ -84,6 +84,9 @@ void loop() {
 
   static const char *datos = str_datos.c_str();  //Cambiar formato str_datos y guardarlo en un puntero (dejar quieto)
 
+  Serial.println(str_presion);
+  Serial.println(str_altitud);
+
 
   //Enviando los datos
   nrf24.send((uint8_t *)datos, strlen(datos));
