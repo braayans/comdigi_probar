@@ -26,7 +26,11 @@ bool bandera = false;
 void setup() 
 {
   Serial.begin(9600);		
-  if (!nrf24.init()){Serial.println("fallo de inicializacion");}      
+  if (!nrf24.init()){Serial.println("fallo de inicializacion");}   
+  else{
+    Serial.println("Antena funcionando!!!!");
+    delay(2000);
+  }   
   if (!nrf24.setChannel(2)) {Serial.println("fallo en establecer canal");} //Se puede cambiar el canal
     
   if (!nrf24.setRF(RH_NRF24::DataRate250kbps, RH_NRF24::TransmitPower0dBm)){Serial.println("fallo en opciones RF");} //Las opciones deben ser iguales a la del transmisor
